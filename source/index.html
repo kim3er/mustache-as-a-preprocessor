@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{title}}</title>
+	<script type="text/javascript" src="application.js"></script>
+</head>
+<body>
+	<h1>This build is for {{env}}</h1>
+
+	<ul>
+		{{# array}}
+		<li>{{name}}</li>
+		{{/ array}}
+	</ul>
+
+	<p>
+	{{# use_console}}
+		Console is on
+	{{/ use_console}}
+	{{^ use_console}}
+		Console is off
+	{{/ use_console}}
+	</p>
+
+</body>
+</html>

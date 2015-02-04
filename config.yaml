@@ -1,0 +1,22 @@
+defaults: &defaults
+  title: Default
+  array:
+    - name: one
+    - name: two
+  use_console: false
+  ecma_5: true
+
+development:
+  <<: *defaults
+  title: Development
+  array:
+    - name: three
+    - name: four
+  use_console: true
+
+build_one:
+  <<: *defaults
+  ecma_5: false
+
+build_two:
+  <<: *defaults

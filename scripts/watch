@@ -1,0 +1,63 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'bundler/setup'
+require 'mustache'
+require 'yaml'
+require 'filewatcher'
+require './scripts/helpers/beard'
+
+SOURCE_DIR = "./source"
+DEST_DIR = "./build"
+CONFIG_FILE = "./config.yaml"
+
+@env = ARGV[0] || "development"
+@config = YAML.load_file( CONFIG_FILE )[@env].merge!( { env: @env } )
+
+@dest_dir = "#{DEST_DIR}/#{@env}"
+
+Dir.mkdir( @dest_dir ) unless Dir.exist?( @dest_dir )
+
+def render_file(filename)
+  template = File.read filename
+  contents = Beard.render( template, @config )
+  dest_file = filename.gsub( SOURCE_DIR, @dest_dir )
+  dest_dir = dest_file.gsub( /#{File.basename(dest_file)}$/, "" )
+
+  Dir.mkdir( dest_dir ) unless Dir.exist?( dest_dir )
+
+  File.open dest_file, "w" do |f|
+    f.write( contents )
+  end
+
+  puts "#{dest_file} written."
+end
+
+def render_directory(dir)
+  Dir.foreach( dir ) do |filename|
+    if filename == "." || filename == ".." || filename == ".DS_Store"
+      next
+    end
+
+    full_path = "#{dir}/#{filename}"
+
+    if File.directory?( full_path )
+      render_directory( full_path )
+    else
+      render_file( full_path )
+    end
+  end
+end
+
+render_directory( SOURCE_DIR )
+
+FileWatcher.new( [ SOURCE_DIR, CONFIG_FILE ] ).watch do |filename|
+  if filename == CONFIG_FILE
+    @config = YAML.load_file( CONFIG_FILE )[@env].merge!( { env: @env } )
+    render_directory( SOURCE_DIR )
+
+    puts "Config reloaded!"
+  elsif ! File.directory?( filename )
+    render_file( filename )
+  end
+end
